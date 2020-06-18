@@ -20,6 +20,15 @@ export default function App() {
 		});
 	}, []);
 
+	async function handleDeleteRepository(id) {
+		await api.delete(`repositories/${id}`);
+
+		const repositoriesUpdated = repositories.filter(
+			repository => repository.id !== id
+		);
+		setRepositories(repositoriesUpdated);
+	}
+
 	async function handleLikeRepository(id) {
 		await api.post(`repositories/${id}/like`).then(response => {
 			const repositoryLiked = response.data;
@@ -29,6 +38,18 @@ export default function App() {
 			repositories[repositoryLikedIndex] = repositoryLiked;
 			setRepositories([...repositories]);
 		});
+	}
+
+	async function handleAddProject() {
+		const response = await api.post('repositories', {
+			title: `Projeto: #${Date.now()}`,
+			url: 'http://github.com/...',
+			techs: ['NodeJS', 'ReactJS', 'React-Native'],
+		});
+
+		const newRepository = response.data;
+
+		setRepositories([...repositories, newRepository]);
 	}
 
 	return (
@@ -42,7 +63,17 @@ export default function App() {
 						return (
 							<>
 								<View style={styles.repositoryContainer}>
-									<Text style={styles.repository}>{repository.title}</Text>
+									<View style={styles.header}>
+										<Text style={styles.repository}>{repository.title}</Text>
+
+										<TouchableOpacity
+											style={styles.buttonDelete}
+											activeOpacity={0.6}
+											onPress={() => handleDeleteRepository(repository.id)}
+										>
+											<Text style={styles.buttonDeleteText}>X</Text>
+										</TouchableOpacity>
+									</View>
 
 									<View style={styles.techsContainer}>
 										{repository.techs.map(tech => (
@@ -63,6 +94,7 @@ export default function App() {
 									</View>
 
 									<TouchableOpacity
+										activeOpacity={0.6}
 										style={styles.button}
 										onPress={() => handleLikeRepository(repository.id)}
 										// Remember to replace "1" below with repository ID: {`like-button-${repository.id}`}
@@ -75,6 +107,13 @@ export default function App() {
 						);
 					}}
 				/>
+				<TouchableOpacity
+					style={styles.buttonAdd}
+					activeOpacity={0.6}
+					onPress={handleAddProject}
+				>
+					<Text style={styles.buttonAddText}>Adicionar projeto</Text>
+				</TouchableOpacity>
 			</SafeAreaView>
 		</>
 	);
@@ -91,13 +130,29 @@ const styles = StyleSheet.create({
 		backgroundColor: '#fff',
 		padding: 20,
 	},
+	header: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+	},
 	repository: {
-		fontSize: 32,
+		fontSize: 25,
 		fontWeight: 'bold',
 	},
 	techsContainer: {
 		flexDirection: 'row',
 		marginTop: 10,
+	},
+	buttonDelete: {
+		height: 20,
+		width: 20,
+		backgroundColor: 'red',
+		borderRadius: 4,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	buttonDeleteText: {
+		color: 'white',
+		fontWeight: 'bold',
 	},
 	tech: {
 		fontSize: 12,
@@ -127,6 +182,18 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 		color: '#fff',
 		backgroundColor: '#7159c1',
+		padding: 15,
+	},
+	buttonAdd: {
+		marginTop: 10,
+		backgroundColor: 'white',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	buttonAddText: {
+		fontSize: 20,
+		fontWeight: 'bold',
+		color: 'black',
 		padding: 15,
 	},
 });
